@@ -85,33 +85,44 @@ function renderCurrent(loc, cw) {
 // ========================================
 //   RENDER: TABLA + GRÁFICA 24 HORAS
 // ========================================
+
 function renderHourly(hr, loc) {
 
-    const times = hr.time;
-    const temps = hr.temperature_2m;
-    const feels = hr.apparent_temperature;
-    const humidity = hr.relative_humidity_2m;
-    const precip = hr.precipitation;
-    const wind = hr.windspeed_10m;
-    const uv = hr.uv_index;
-    const wcode = hr.weathercode;
+    const times = hr.time || [];
+    const temps = hr.temperature_2m || [];
+    const feels = hr.apparent_temperature || [];
+    const humidity = hr.relative_humidity_2m || [];
+    const precip = hr.precipitation || [];
+    const wind = hr.windspeed_10m || [];
+    const uv = hr.uv_index || [];
+    const wcode = hr.weathercode || [];
 
-    // Encuentra el índice de la hora actual
-    const nowStr = new Date().toISOString().slice(0, 13); // YYYY-MM-DDTHH
-    let startIdx = times.findIndex(t => t.startsWith(nowStr));
-    if (startIdx === -1) startIdx = 0;
+    if (times.length === 0) {
+        $("#hourlyTable tbody").html("<tr><td colspan='8'>No hay datos horarios disponibles</td></tr>");
+        return;
+    }
+
+    const $tbody = $("#hourlyTable tbody");
+    $tbody.empty();
 
     const labels = [];
     const chartData = [];
 
-    const $tbody = $("#hourlyTable tbody");
+    // Hora actual para empezar el bucle
+    const nowMadridHour = new Date().toLocaleString('sv', { timeZone: 'Europe/Madrid', hour12: false }).slice(11,16); // "HH:MM"
+
+    // Encuentra índice inicial aproximado
+    let startIdx = times.findIndex(t => t.slice(11,16) >= nowMadridHour);
+    if (startIdx === -1) startIdx = 0;
 
     for (let i = startIdx; i < Math.min(times.length, startIdx + 24); i++) {
+        // Solo la hora HH:MM
+        const displayTime = times[i].slice(11,16);
 
         const row = `
       <tr>
-        <td>${times[i].replace("T", " ")}</td>
-        <td>${temps[i]}</td>
+        <td>${displayTime}</td>
+        <td>${temps[i] ?? ""}</td>
         <td>${feels[i] ?? ""}</td>
         <td>${humidity[i] ?? ""}</td>
         <td>${precip[i] ?? 0}</td>
@@ -120,11 +131,10 @@ function renderHourly(hr, loc) {
         <td>${wcode[i] ?? ""}</td>
       </tr>
     `;
-
         $tbody.append(row);
 
-        labels.push(times[i].replace("T", " "));
-        chartData.push(temps[i]);
+        labels.push(displayTime);
+        chartData.push(temps[i] ?? null);
     }
 
     drawChart(labels, chartData, loc.name);
