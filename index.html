@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>Weather: Almassora / Castellón / Vinaròs</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- opcionales -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<main class="container">
+    <h1>Weather Explorer — Almassora / Castellón / Vinaròs</h1>
+
+    <label for="place">Selecciona ubicación</label>
+    <select id="place">
+        <option value="almassora">Almassora</option>
+        <option value="castellon">Castellón</option>
+        <option value="vinaros">Vinaròs</option>
+    </select>
+
+    <button id="btnRefresh">Actualizar</button>
+
+    <section id="current" class="card">
+        <h2>Actual</h2>
+        <div id="currentContent">Pulsa "Actualizar" o cambia la ubicación.</div>
+    </section>
+
+    <section id="forecast" class="card">
+        <h2>Previsión próximas 24 horas</h2>
+        <table id="hourlyTable">
+            <thead>
+            <tr><th>Hora</th><th>Temp (ºC)</th><th>Sensación (ºC)</th><th>Humedad (%)</th><th>Precip. (mm)</th><th>Viento (m/s)</th><th>UV</th><th>Weather</th></tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </section>
+
+    <!-- opcional: canvas para gráfico -->
+    <section class="card">
+        <h2>Gráfica (Temperatura próximas 24h)</h2>
+        <canvas id="tempChart" width="800" height="200"></canvas>
+    </section>
+
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
