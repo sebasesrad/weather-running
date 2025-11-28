@@ -102,32 +102,44 @@ function renderHourly(hr, loc) {
         return;
     }
 
+    const nowMadridHour = new Date().toLocaleString('sv', { timeZone: 'Europe/Madrid', hour12: false }).slice(11,16);
+    let startIdx = times.findIndex(t => t.slice(11,16) >= nowMadridHour);
+    if (startIdx === -1) startIdx = 0;
+
+    // ---------- Calcular máximos ----------
+    const maxTemp = Math.max(...temps.slice(startIdx, startIdx+24));
+    const maxFeels = Math.max(...feels.slice(startIdx, startIdx+24));
+    const maxHumidity = Math.max(...humidity.slice(startIdx, startIdx+24));
+    const maxPrecip = Math.max(...precip.slice(startIdx, startIdx+24));
+    const maxWind = Math.max(...wind.slice(startIdx, startIdx+24));
+    const maxUv = Math.max(...uv.slice(startIdx, startIdx+24));
+
     const $tbody = $("#hourlyTable tbody");
     $tbody.empty();
 
     const labels = [];
     const chartData = [];
 
-    // Hora actual para empezar el bucle
-    const nowMadridHour = new Date().toLocaleString('sv', { timeZone: 'Europe/Madrid', hour12: false }).slice(11,16); // "HH:MM"
-
-    // Encuentra índice inicial aproximado
-    let startIdx = times.findIndex(t => t.slice(11,16) >= nowMadridHour);
-    if (startIdx === -1) startIdx = 0;
-
     for (let i = startIdx; i < Math.min(times.length, startIdx + 24); i++) {
-        // Solo la hora HH:MM
         const displayTime = times[i].slice(11,16);
+
+        // ---------- Determinar si es máximo (solo si > 0 para precip) ----------
+        const tempClass = temps[i] === maxTemp ? "highlight" : "";
+        const feelsClass = feels[i] === maxFeels ? "highlight" : "";
+        const humClass = humidity[i] === maxHumidity ? "highlight" : "";
+        const precipClass = (precip[i] === maxPrecip && maxPrecip > 0) ? "highlight" : "";
+        const windClass = wind[i] === maxWind ? "highlight" : "";
+        const uvClass = uv[i] === maxUv ? "highlight" : "";
 
         const row = `
       <tr>
         <td>${displayTime}</td>
-        <td>${temps[i] ?? ""}</td>
-        <td>${feels[i] ?? ""}</td>
-        <td>${humidity[i] ?? ""}</td>
-        <td>${precip[i] ?? 0}</td>
-        <td>${wind[i] ?? ""}</td>
-        <td>${uv[i] ?? ""}</td>
+        <td class="${tempClass}">${temps[i] ?? ""}</td>
+        <td class="${feelsClass}">${feels[i] ?? ""}</td>
+        <td class="${humClass}">${humidity[i] ?? ""}</td>
+        <td class="${precipClass}">${precip[i] ?? 0}</td>
+        <td class="${windClass}">${wind[i] ?? ""}</td>
+        <td class="${uvClass}">${uv[i] ?? ""}</td>
         <td>${wcode[i] ?? ""}</td>
       </tr>
     `;
@@ -139,6 +151,7 @@ function renderHourly(hr, loc) {
 
     drawChart(labels, chartData, loc.name);
 }
+
 
 
 // ==========================
