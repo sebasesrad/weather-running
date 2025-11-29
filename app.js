@@ -1,6 +1,4 @@
-// =====================================
-//  COORDENADAS FIJAS
-// =====================================
+// Coordenadas fijas
 const LOCS = {
     almassora: { name: "Almassora", lat: 39.95, lon: -0.05 },
     castellon: { name: "Castellón de la Plana", lat: 39.986, lon: -0.051 },
@@ -9,12 +7,10 @@ const LOCS = {
 
 let chartInstance = null;
 
-// =====================================
-//  DOCUMENT READY
-// =====================================
 $(document).ready(function () {
 
     console.log("app.js cargado");
+
 
     // Evento: Select o botón refrescar
     $("#btnRefresh, #place").on("click change", function () {
@@ -28,9 +24,9 @@ $(document).ready(function () {
 });
 
 
-// =====================================
-//  FUNCIÓN PRINCIPAL
-// =====================================
+// ==========================
+//   FUNCIÓN PRINCIPAL
+// ==========================
 async function fetchWeather(loc) {
 
     $("#currentContent").html("Cargando...");
@@ -71,24 +67,25 @@ async function fetchWeather(loc) {
 }
 
 
-// =====================================
-//  RENDER: DATOS ACTUALES
-// =====================================
+// ==========================
+//   RENDER: DATOS ACTUALES
+// ==========================
 function renderCurrent(loc, cw) {
     const html = `
-        <strong>${loc.name}</strong><br>
-        <strong>Hora:</strong> ${cw.time} &nbsp;
-        <strong>Temp:</strong> ${cw.temperature} °C &nbsp;
-        <strong>Viento:</strong> ${cw.windspeed} m/s (${Math.round(cw.winddirection)}°) &nbsp;
-        <strong>Weather code:</strong> ${cw.weathercode}
-    `;
+    <strong>${loc.name}</strong><br>
+    <strong>Hora:</strong> ${cw.time} &nbsp;
+    <strong>Temp:</strong> ${cw.temperature} °C &nbsp;
+    <strong>Viento:</strong> ${cw.windspeed} m/s (${Math.round(cw.winddirection)}°) &nbsp;
+    <strong>Weather code:</strong> ${cw.weathercode}
+  `;
     $("#currentContent").html(html);
 }
 
 
-// =====================================
-//  RENDER: TABLA + GRÁFICA 24 HORAS
-// =====================================
+// ========================================
+//   RENDER: TABLA + GRÁFICA 24 HORAS
+// ========================================
+
 function renderHourly(hr, loc) {
 
     const times = hr.time || [];
@@ -111,76 +108,42 @@ function renderHourly(hr, loc) {
     const labels = [];
     const chartData = [];
 
-    // Hora actual HH:MM
-    const nowMadridHour = new Date()
-        .toLocaleString('sv', { timeZone: 'Europe/Madrid', hour12: false })
-        .slice(11, 16);
+    // Hora actual para empezar el bucle
+    const nowMadridHour = new Date().toLocaleString('sv', { timeZone: 'Europe/Madrid', hour12: false }).slice(11,16); // "HH:MM"
 
-    let startIdx = times.findIndex(t => t.slice(11, 16) >= nowMadridHour);
+    // Encuentra índice inicial aproximado
+    let startIdx = times.findIndex(t => t.slice(11,16) >= nowMadridHour);
     if (startIdx === -1) startIdx = 0;
 
     for (let i = startIdx; i < Math.min(times.length, startIdx + 24); i++) {
-
-        const displayTime = times[i].slice(11, 16);
+        // Solo la hora HH:MM
+        const displayTime = times[i].slice(11,16);
 
         const row = `
-            <tr>
-                <td>${displayTime}</td>
-                <td>${temps[i] ?? ""}</td>
-                <td>${feels[i] ?? ""}</td>
-                <td>${humidity[i] ?? ""}</td>
-                <td>${precip[i] ?? 0}</td>
-                <td>${wind[i] ?? ""}</td>
-                <td>${uv[i] ?? ""}</td>
-                <td>${wcode[i] ?? ""}</td>
-            </tr>
-        `;
+      <tr>
+        <td>${displayTime}</td>
+        <td>${temps[i] ?? ""}</td>
+        <td>${feels[i] ?? ""}</td>
+        <td>${humidity[i] ?? ""}</td>
+        <td>${precip[i] ?? 0}</td>
+        <td>${wind[i] ?? ""}</td>
+        <td>${uv[i] ?? ""}</td>
+        <td>${wcode[i] ?? ""}</td>
+      </tr>
+    `;
         $tbody.append(row);
 
         labels.push(displayTime);
         chartData.push(temps[i] ?? null);
     }
 
-    // ====================================================
-    //  RESALTAR MÁXIMOS DE COLUMNAS 1..6
-    // ====================================================
-    const rows = $("#hourlyTable tbody tr");
-    const colIndexes = [1, 2, 3, 4, 5, 6];
-
-    colIndexes.forEach(col => {
-
-        const values = rows.map(function () {
-            const txt = $(this).find("td").eq(col).text().trim();
-            const num = parseFloat(txt);
-            return isNaN(num) ? null : num;
-        }).get();
-
-        const numericValues = values.filter(v => v !== null);
-
-        if (numericValues.length === 0) return;
-
-        const maxVal = Math.max(...numericValues);
-
-        const allEqual = numericValues.every(v => v === numericValues[0]);
-        if (allEqual) return; // si todos iguales → no colorear
-
-        rows.each(function () {
-            const txt = $(this).find("td").eq(col).text().trim();
-            const num = parseFloat(txt);
-            if (num === maxVal) {
-                $(this).find("td").eq(col).addClass("highlight");
-            }
-        });
-    });
-
-
     drawChart(labels, chartData, loc.name);
 }
 
 
-// =====================================
-//  GRÁFICO (Chart.js)
-// =====================================
+// ==========================
+//   GRÁFICO (Chart.js)
+// ==========================
 function drawChart(labels, data, placeName) {
 
     if (typeof Chart === "undefined") return;
